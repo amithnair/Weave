@@ -65,6 +65,7 @@ import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
+import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -141,9 +142,9 @@ public class DataService extends GenericServlet implements IWeaveEntityService
 	////////////////////
 	// DataEntity info
 	
-	public EntityHierarchyInfo[] getHierarchyInfo(String entityType) throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
 	{
-		return getDataConfig().getEntityHierarchyInfo(entityType);
+		return getDataConfig().getEntityHierarchyInfo(publicMetadata);
 	}
 
 	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException
@@ -871,7 +872,7 @@ public class DataService extends GenericServlet implements IWeaveEntityService
 	 */
 	@Deprecated public EntityHierarchyInfo[] getDataTableList() throws RemoteException
 	{
-		return getDataConfig().getEntityHierarchyInfo(EntityType.TABLE);
+		return getDataConfig().getEntityHierarchyInfo(MapUtils.<String,String>fromPairs(PublicMetadata.ENTITYTYPE, EntityType.TABLE));
 	}
 
 	/**
