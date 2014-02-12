@@ -109,6 +109,7 @@ aws.queryService = function(url, method, params, resultHandler, queryId)
     aws.broadcastBusyStatus();
     
     $.post(url, JSON.stringify(request), handleResponse, "text");
+   // $.post(url, JSON.stringify(request), handleResponse, "json");
 
     function handleResponse(response)
     {
