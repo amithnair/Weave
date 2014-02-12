@@ -255,6 +255,7 @@ angular.module("aws.panelControllers", [])
 
 	$scope.$watch('enabled', function() {
 		if($scope.enabled != undefined) {
+			//updates the queryObject on UI interaction
 			queryService.queryObject.MapTool.enabled = $scope.enabled;
 		}
 	});
@@ -262,11 +263,14 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.queryObject.MapTool.enabled;
 	}, function() {
+		//updates the UI checkbox for maptool for example when a query is imported
 		$scope.enabled = queryService.queryObject.MapTool.enabled;
 	});
 		
 	$scope.$watch('selected', function() {
 		if($scope.selected != undefined && $scope.selected != "") {
+			//de-serializes the JSON string and updates the Query Object (Panel on the left)
+			//$scope.selected is a JSON string
 			queryService.queryObject.MapTool.selected = angular.fromJson($scope.selected);
 		}
 	});
@@ -274,6 +278,7 @@ angular.module("aws.panelControllers", [])
 	$scope.$watch(function(){
 		return queryService.queryObject.MapTool.selected;
 	}, function() {
+		// updates the UI entry in geometry selection in the MapToolPanel
 		$scope.selected = angular.toJson(queryService.queryObject.MapTool.selected);	
 	});
 })
@@ -361,7 +366,7 @@ angular.module("aws.panelControllers", [])
 // DATA TABLE CONTROLLER
 .controller("DataTablePanelCtrl", function($scope, queryService){
 	queryService.queryObject.DataTableTool = { 
-											 enabled : false,
+											 enhabled : false,
 											 selected : []
 											};
 

@@ -111,6 +111,7 @@ public class test
 		
 		
 		ArrayList<String> columns = new ArrayList<String>();
+		columns.add("IYEAR");
 		columns.add("X_STATE");
 		columns.add("X_PSU");
 		columns.add("X_FINALWT");
@@ -123,17 +124,24 @@ public class test
 //		columns.add("PercentObese2005");
 //		columns.add("PercentObese2006");
 		
-		connectionObject.put("connectionType", "RODBC");
+//		connectionObject.put("connectionType", "RODBC");
+//		connectionObject.put("user", "root");
+//		connectionObject.put("password", "shweta");
+//		connectionObject.put("schema", "data");
+//		connectionObject.put("host", "localhost");
+//		connectionObject.put("dsn", "myCDC");
+		
+		connectionObject.put("connectionType", "RMySQL");
 		connectionObject.put("user", "root");
-		connectionObject.put("password", "shweta");
+		connectionObject.put("password", "pass");
 		connectionObject.put("schema", "data");
-		connectionObject.put("host", "localhost");
+		connectionObject.put("host", "129.63.17.49");
 		connectionObject.put("dsn", "myCDC");
 		
-		requestObject.put("scriptName", "TestingAWS_RODBC.R");
-		requestObject.put("scriptPath", "C:\\RScripts\\");
+		requestObject.put("scriptName", "test.R");
+		requestObject.put("scriptPath", "C:\\Users\\Shweta\\Desktop\\");
 		requestObject.put("columnsToBeRetrieved",columns);
-		requestObject.put("dataset", "sdoh2010q");
+		requestObject.put("dataset", "sdoh_one_year_2010");
 		
 		//Object[] array1 = {10,10,20,30,22,50,60,55,89,33,44,54,21};
 		//Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};

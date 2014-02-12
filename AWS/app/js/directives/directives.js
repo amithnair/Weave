@@ -15,7 +15,7 @@ angular
 				var reader = new FileReader();
 				reader.onload = function(e) {
 					$scope.jsonText =  $.parseJSON(e.target.result);
-					$scope.$broadcast('newQueryLoaded');
+					$scope.$broadcast('newQueryLoaded');//dispatches an event name downwards to child scopes
 				}
 				reader.readAsText(file);
 				

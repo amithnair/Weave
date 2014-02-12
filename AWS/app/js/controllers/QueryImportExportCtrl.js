@@ -14,9 +14,10 @@ angular.module("aws.QueryImportExport", []).controller("QueryImportExportCtrl", 
 			$scope.importQueryObject = function() {
 			};
 			
+			//event name is declared in the directive
 			$scope.$on('newQueryLoaded', function(e) {
                 $scope.$safeApply(function() {
-                  queryService.queryObject = e.targetScope.jsonText;
+                  queryService.queryObject = e.targetScope.jsonText;//updates the queryService.queryObject which in tunrs updates UI
                 });
 			});
 });

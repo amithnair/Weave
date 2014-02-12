@@ -12,10 +12,10 @@ angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope,
 	$scope.dataTableList = [];
 	
 	$scope.$watch(function() {
-		return queryService.dataObject.dataTableList;
+		return queryService.dataObject.dataTableList;//returns a list of data tables 
 	}, function() {
 		if(queryService.dataObject.hasOwnProperty("dataTableList")) {
-			for(var i=0; i < queryService.dataObject.dataTableList.length; i++) {
+			for(var i=0; i < queryService.dataObject.dataTableList.length; i++) {//populates $scope.dataTabelList with json objects
 				dataTable = queryService.dataObject.dataTableList[i];
 				$scope.dataTableList.push( {
 											 id : dataTable.id ,
@@ -27,8 +27,10 @@ angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope,
 	
     $scope.$watch('dataTable', function() {
     	if ($scope.dataTable != undefined && $scope.dataTable != "") {
-    		var dataTable = angular.fromJson($scope.dataTable);
-    		queryService.queryObject.dataTable = dataTable; 
+    		console.log($scope.dataTable);
+    		//$scope.dataTable is a json
+    		var dataTable = angular.fromJson($scope.dataTable);//conversion to an Object
+    		queryService.queryObject.dataTable = dataTable; //updates the Query Object Panel on the left
     		if(dataTable.hasOwnProperty('id') && dataTable.id != null) {
     			queryService.getDataColumnsEntitiesFromId(dataTable.id);
     		}
@@ -38,6 +40,7 @@ angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope,
     $scope.$watch(function() {
     	return queryService.queryObject.dataTable;
     }, function() {
+    	//updates the $scope.dataTable (UI) when a query is imported which requires conversion to Json
     	$scope.dataTable = angular.toJson(queryService.queryObject.dataTable);
     });
 });
