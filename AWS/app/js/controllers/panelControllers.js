@@ -132,7 +132,8 @@ angular.module("aws.panelControllers", [])
 										$scope.show[i] = true;
 										$scope.filterType[i] = "categorical";
 										if(metadata.hasOwnProperty("varValues")) {
-											$scope.categoricalOptions[i] = metadata.varValues;
+											console.log(metadata.varValues);
+											$scope.categoricalOptions[i] = queryService.getDataMapping(metadata.varValues);
 										}
 									}
 								}
@@ -232,7 +233,9 @@ angular.module("aws.panelControllers", [])
 												id : "",
 												title : "",
 												keyType : ""
-											}
+											},
+											 enableTitle : false,
+											 title : ""
 									   };
 	
 	queryService.getGeometryDataColumnsEntities();
@@ -281,6 +284,30 @@ angular.module("aws.panelControllers", [])
 		// updates the UI entry in geometry selection in the MapToolPanel
 		$scope.selected = angular.toJson(queryService.queryObject.MapTool.selected);	
 	});
+	
+	$scope.$watch('title', function() {
+		if($scope.title != undefined) {
+			queryService.queryObject.MapTool.title = $scope.title;
+		}
+	});
+	
+	$scope.$watch('enableTitle', function() {
+		if($scope.enableTitle != undefined) {
+			queryService.queryObject.MapTool.enableTitle = $scope.enableTitle;
+		}
+	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.MapTool.title;
+	}, function() {
+		$scope.title = queryService.queryObject.MapTool.title;
+	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.MapTool.enableTitle;
+	}, function() {
+		$scope.enableTitle = queryService.queryObject.MapTool.enableTitle;
+	});
 })
 
 // BARCHART CONTROLLER
@@ -290,7 +317,9 @@ angular.module("aws.panelControllers", [])
 											 enabled : false,
 											 heights : [],
 											 sort : "",
-											 label : ""
+											 label : "",
+											 enableTitle : false,
+											 title : ""
 											};
 
 	$scope.options = [];
@@ -335,6 +364,18 @@ angular.module("aws.panelControllers", [])
 		$scope.heights = queryService.queryObject.BarChartTool.heights;	
 	});
 
+	$scope.$watch(function(){
+		return queryService.queryObject.BarChartTool.title;
+	}, function() {
+		$scope.title = queryService.queryObject.BarChartTool.title;
+	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.BarChartTool.enableTitle;
+	}, function() {
+		$scope.enableTitle = queryService.queryObject.BarChartTool.enableTitle;
+	});
+	
 	$scope.$watch('sort', function() {
 		if($scope.sort != undefined) {
 			queryService.queryObject.BarChartTool.sort = $scope.sort;
@@ -361,6 +402,18 @@ angular.module("aws.panelControllers", [])
 		$scope.label = queryService.queryObject.BarChartTool.label;	
 	});
 	
+	$scope.$watch('title', function() {
+		if($scope.title != undefined) {
+			queryService.queryObject.BarChartTool.title = $scope.title;
+		}
+	});
+	
+	$scope.$watch('enableTitle', function() {
+		if($scope.enableTitle != undefined) {
+			queryService.queryObject.BarChartTool.enableTitle = $scope.enableTitle;
+		}
+	});
+	
 })
 
 // DATA TABLE CONTROLLER
@@ -368,6 +421,7 @@ angular.module("aws.panelControllers", [])
 	queryService.queryObject.DataTableTool = { 
 											 enhabled : false,
 											 selected : []
+
 											};
 
 	$scope.options = [];
@@ -418,7 +472,9 @@ angular.module("aws.panelControllers", [])
 	queryService.queryObject.ScatterPlotTool = { 
 											 enabled : false,
 											 X : "",
-											 Y : "" 
+											 Y : "",
+											 enableTitle : false,
+											 title : ""
 											};
 
 	$scope.options = [];
@@ -456,6 +512,18 @@ angular.module("aws.panelControllers", [])
 		$scope.XSelection = queryService.queryObject.ScatterPlotTool.X;
 	});
 
+	$scope.$watch(function(){
+		return queryService.queryObject.ScatterPlotTool.title;
+	}, function() {
+		$scope.title = queryService.queryObject.ScatterPlotTool.title;
+	});
+	
+	$scope.$watch(function(){
+		return queryService.queryObject.ScatterPlotTool.enableTitle;
+	}, function() {
+		$scope.enableTitle = queryService.queryObject.ScatterPlotTool.enableTitle;
+	});
+	
 	$scope.$watch('XSelection', function() {
 		if($scope.XSelection != undefined) {
 			queryService.queryObject.ScatterPlotTool.X = $scope.XSelection;
@@ -473,8 +541,19 @@ angular.module("aws.panelControllers", [])
 			queryService.queryObject.ScatterPlotTool.Y = $scope.YSelection;
 		}
 	});
+	
+	$scope.$watch('title', function() {
+		if($scope.title != undefined) {
+			queryService.queryObject.ScatterPlotTool.title = $scope.title;
+		}
+	});
+	
+	$scope.$watch('enableTitle', function() {
+		if($scope.enableTitle != undefined) {
+			queryService.queryObject.ScatterPlotTool.enableTitle = $scope.enableTitle;
+		}
+	});
 })
-
 
 // COLOR CONTROLLER
 .controller("ColorColumnPanelCtrl", function($scope, queryService){
