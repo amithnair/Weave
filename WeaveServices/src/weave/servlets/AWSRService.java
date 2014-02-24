@@ -459,8 +459,7 @@ public class AWSRService extends RService
              
     }        
     
-<<<<<<< HEAD
-=======
+
     public int runStataScript() throws IOException{
     	
     	 Runtime run = Runtime.getRuntime();
@@ -515,7 +514,7 @@ public class AWSRService extends RService
          }
     	
     }
->>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
+
     public Object getScriptMetadata(String scriptName) throws Exception
 	{
 		File directory = new File(uploadPath, "RScripts");
