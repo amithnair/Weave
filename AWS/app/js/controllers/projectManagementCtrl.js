@@ -26,9 +26,9 @@ angular.module('aws.projectManagementCtrl', [])
 		return queryService.dataObject.listofQueryObjectsInProject;
 	}, function() {
 		$scope.listItems = queryService.dataObject.listofQueryObjectsInProject;
-				for(var i in $scope.listItems){
-					console.log("oneItem", $scope.listItems[i]);
-		}
+		//for(var i in $scope.listItems){
+		console.log("oneItem", $scope.listItems);
+		//}
 		
 	});
 	
@@ -44,70 +44,7 @@ angular.module('aws.projectManagementCtrl', [])
 //	$scope.$watch(function(){
 //		return $scope.listItems;
 //	}, function(){
-//
-//		
-//		
-//		
-//		
-//		//testing
-//		var dropDownList = document.getElementById("queryObjectChoicesUI");
-//		for(var i in $scope.listItems)
-//		{
-//			if($scope.listItems[i] === null)
-//				{
-//					break;
-//				}
-//			else{
-//				
-//				var tempListItem = $scope.listItems[i];//single JSON object//cast?
-//				var children = new Array();
-//				
-//				var uiList = document.createElement("ul");
-//					//for one list Option
-//				var nameOption = document.createElement("li");//create list item
-//				nameOption.appendChild(document.createTextNode("Title : " + tempListItem.title));//append to list
-//				children.push(nameOption);
-//				
-//				var dataTableOption = document.createElement("li");//create list item
-//				dataTableOption.appendChild(document.createTextNode("Script : "+ tempListItem.dataTable.title));//append to list
-//				children.push(dataTableOption);
-//				
-//				
-//				var dateOption = document.createElement("li");//create list item
-//				dateOption.appendChild(document.createTextNode("Date Created : "+ tempListItem.date));//append to list
-//				children.push(dateOption);
-//				
-//				var scriptOption = document.createElement("li");//create list item
-//				scriptOption.appendChild(document.createTextNode("Script : "+ tempListItem.scriptSelected));//append to list
-//				children.push(scriptOption);
-//				
-//				//creating button
-//				var button = document.createElement("button");
-//				button.setAttribute("id", i);
-//				button.setAttribute("type", "button");
-//				button.style.width = "500px";
-//				button.style.height = "200px";
-//				button.setAttribute("class", "btn btn-default");
-//				button.onclick = function(){
-//					//getting index
-//					var index = parseInt(this.id);
-//					$scope.currentQuerySelected = $scope.listItems[index];//getting the corresponding queryObject
-//					console.log("current", $scope.currentQuerySelected);
-//					;};
-//				
-//				//Appending the respective children
-//				//uiList.appendChild(nameOption);
-//				//uiList.appendChild(dateOption);
-//				
-//				for(child in children){
-//					uiList.appendChild(children[child]);
-//				}
-//				button.appendChild(uiList);
-//				dropDownList.appendChild(button);
-//		
-//			}
-//				
-//		}
+
 //	});
 	
      
@@ -116,8 +53,8 @@ angular.module('aws.projectManagementCtrl', [])
 	
 	$scope.loadQueryInAnalysisBuilder = function(){
 		//load that JSON queryObject
-		
-		queryService.queryObject = $scope.currentQuerySelected;
+		console.log("loadScope", $scope.$id);
+		//queryService.queryObject = $scope.currentQuerySelected;
 		console.log("updatedQuery", $scope.currentQuerySelected);
 	};
 	

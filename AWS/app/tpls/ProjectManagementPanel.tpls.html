@@ -13,25 +13,19 @@
 
 <!-- Houses the list and the buttons on the right -->
 
-<div style="/*display: inline-block;*/ margin-left : 30px ;width:1250px;height:600px;"">
+<div ng-controller = "projectManagementCtrl" style="/*display: inline-block;*/ margin-left : 30px ;width:1250px;height:600px;"">
 
 <!-- Rectangle -->
 <div style=" width:1000px;height:500px;border:1px solid #000;">
    <!-- DropDownList -->
-	
-	<div class="row">
-		<div class="col-lg-6" style="border-right: 1px solid #ccc;">
-			<div  id = "queryObjectChoicesUI" ng-controller = "projectManagementCtrl" style="margin-left: 30px" class="btn-group">
-				
+			<div  id = "queryObjectChoicesUI"  style="margin-left: 20px" class="btn-group">
 				<br />
-				<div ng-repeat="query in listItems">
-					<project-query-button item="{{query}}"> </project-query-button>
-				</div><br />
+					<div ng-repeat="query in listItems">
+						<project-query-button ng-model="selection" > </project-query-button>
+					</div><br />
 
 			</div>
-		</div>
-	</div>
-
+		
 </div><!-- Rectangle -->
 
 <!--Contains all buttons -->
