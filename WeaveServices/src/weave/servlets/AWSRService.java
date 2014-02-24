@@ -1,5 +1,5 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
+     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
 
     This file is a part of Weave.
@@ -20,10 +20,13 @@
 package weave.servlets;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -456,6 +459,63 @@ public class AWSRService extends RService
              
     }        
     
+<<<<<<< HEAD
+=======
+    public int runStataScript() throws IOException{
+    	
+    	 Runtime run = Runtime.getRuntime();
+         Process proc = null;
+         proc = run.exec(new String[] {"stata-se", "-q"});
+         OutputStream stdin = proc.getOutputStream();
+         stdin.write(new String("/Users/franckamayou/Desktop/test.do").getBytes());
+         stdin.close();
+         BufferedReader stdout = new BufferedReader( new InputStreamReader(proc.getInputStream()) );
+         BufferedReader stderr = new BufferedReader( new InputStreamReader(proc.getErrorStream()) );
+        
+         while (true)
+         {
+         	String line = null;
+             try
+             {
+                 // check both streams for new data
+                 if (stdout.ready())
+                 {
+               		line = stdout.readLine();
+                 }
+                 else if (stderr.ready())
+                 {
+               		line = stderr.readLine();
+                 }
+                 
+ 				// print out data from stream
+ 				if (line != null)
+ 				{
+ 					System.out.println(line);
+ 					continue;
+ 				}
+             }
+             catch (IOException ioe)
+             {
+                 // stream error, get the return value of the process and return from this function
+                 try {
+                     return proc.exitValue();
+                 } catch (IllegalThreadStateException itse) {
+                     return -Integer.MAX_VALUE;
+                 }
+             }
+             try
+             {
+                 // if process finished, return
+                 return proc.exitValue();
+             }
+             catch (IllegalThreadStateException itse)
+             {
+                 // process is still running, continue
+             }
+         }
+    	
+    }
+>>>>>>> branch 'aws' of https://github.com/IVPR/Weave.git
     public Object getScriptMetadata(String scriptName) throws Exception
 	{
 		File directory = new File(uploadPath, "RScripts");
@@ -528,6 +588,7 @@ public class AWSRService extends RService
 		
 		Object[][] recordData = DataService.getFilteredRows(filteredColumnRequests, null).recordData;
 		Object[][] columnData = transpose(recordData);
+		recordData = null;
 		
 		long endTime = System.currentTimeMillis();
 		
@@ -544,7 +605,7 @@ public class AWSRService extends RService
 		startTime = System.currentTimeMillis();
 		returnedColumns = runAWSScript(null, inputNames, inputValues, outputNames, finalScript, "", false, false);
 		endTime = System.currentTimeMillis();
-		
+		columnData = null;
 		long time2 = endTime - startTime;
 		MyResult result = new MyResult();
 		result.data = returnedColumns;

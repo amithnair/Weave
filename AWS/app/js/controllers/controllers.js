@@ -11,7 +11,11 @@ angular.module("aws.Main", [])
 	$scope.leftPanelUrl = "./tpls/leftPanel.tpls.html";
 	$scope.analysisUrl = "./tpls/analysis.tpls.html";
 	$scope.weaveInstancePanel = "./tpls/weave.tpls.html";
+
 	$scope.projectManagementUrl = "./tpls/ProjectManagementPanel.tpls.html";
+
+	$scope.georgraphyUrl = "./tpls/GeographyPanel.tpls.html";
+
 	
 	$scope.$watch(function(){
 		return aws.timeLogString;
