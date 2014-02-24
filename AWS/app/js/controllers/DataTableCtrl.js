@@ -8,22 +8,23 @@ angular.module('aws.DataTable', []).controller('DataTableCtrl', function($scope,
 			title : ""
 	};
 	
-	queryService.getDataTableList();
 	$scope.dataTableList = [];
+	$scope.dataTableList = queryService.getDataTableList();
 	
-	$scope.$watch(function() {
-		return queryService.dataObject.dataTableList;//returns a list of data tables 
-	}, function() {
-		if(queryService.dataObject.hasOwnProperty("dataTableList")) {
-			for(var i=0; i < queryService.dataObject.dataTableList.length; i++) {//populates $scope.dataTabelList with json objects
-				dataTable = queryService.dataObject.dataTableList[i];
-				$scope.dataTableList.push( {
-											 id : dataTable.id ,
-											 title : dataTable.title
-											});
-			}
-		}
-	});
+	//redundant code
+//	$scope.$watch(function() {
+//		return queryService.dataObject.dataTableList;//returns a list of data tables 
+//	}, function() {
+//		if(queryService.dataObject.hasOwnProperty("dataTableList")) {
+//			for(var i=0; i < queryService.dataObject.dataTableList.length; i++) {//populates $scope.dataTabelList with json objects
+//				dataTable = queryService.dataObject.dataTableList[i];
+//				$scope.dataTableList.push( {
+//											 id : dataTable.id ,
+//											 title : dataTable.title
+//											});
+//			}
+//		}
+//	});
 	
     $scope.$watch('dataTable', function() {
     	if ($scope.dataTable != undefined && $scope.dataTable != "") {

@@ -31,7 +31,7 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.scriptList = queryService.getListOfScripts();
 	
-	
+	//updates the queryObject through UI interaction
 	$scope.$watch('scriptSelected', function() {
 		if($scope.scriptSelected != undefined && $scope.scriptSelected != "") {
 				queryService.queryObject.scriptSelected = $scope.scriptSelected;
@@ -39,13 +39,14 @@ angular.module("aws.panelControllers", [])
 		}
 	});
 	
+	//updates UI depending on queryObject for example when a query is imported
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptSelected;
 	}, function() {
 		$scope.scriptSelected = queryService.queryObject.scriptSelected;
 	});
 	
-	$scope.inputs;
+	$scope.inputs;//collects the input array from the Script metadata
 	$scope.$watch(function(){
 		return queryService.dataObject.scriptMetadata;
 	}, function() {
@@ -59,6 +60,7 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.columns = [];
 	
+	//as soon as datatble is selected, fetch the respective list of columns in that datatable
 	$scope.$watch(function(){
 		return queryService.queryObject.dataTable;
 	}, function(){
@@ -68,15 +70,15 @@ angular.module("aws.panelControllers", [])
 	
 
 	$scope.$watch(function(){
-		return queryService.dataObject.columns;
-	}, function(){
+		return queryService.dataObject.columns;//expression being watched
+	}, function(){//callback called when the return value of the watchexpression changes
 		if ( queryService.dataObject.columns != undefined ) {
 			var columns = queryService.dataObject.columns;
 			var orderedColumns = {};
 			orderedColumns.all = [];
 			for(var i = 0; i  < columns.length; i++) {
-				if (columns[i].publicMetadata.hasOwnProperty("aws_metadata")) {
-					var column = columns[i];
+				if (columns[i].publicMetadata.hasOwnProperty("aws_metadata")) {//if the column has aws-metadata
+					var column = columns[i];//picking up column
 					orderedColumns.all.push({ id : column.id , title : column.publicMetadata.title } );
 					var aws_metadata = angular.fromJson(column.publicMetadata.aws_metadata);
 					if(aws_metadata.hasOwnProperty("columnType")) {
@@ -92,17 +94,18 @@ angular.module("aws.panelControllers", [])
 					}
 				}
 			}
-			$scope.columns = orderedColumns;
+			$scope.columns = orderedColumns;//updates the UI with a choice of columns for user to select from
 		}
 	});
 	
-	queryService.queryObject.FilteredColumnRequest = [];
+	queryService.queryObject.FilteredColumnRequest = [];//columns being selected for the script
 
 	$scope.$watchCollection('selection', function(newVal, oldVal){
 		for(var i = 0; i < $scope.selection.length; i++) {
 				if($scope.selection != undefined) {
 					if ($scope.selection[i] != undefined && $scope.selection[i] != ""){
 						var selection = angular.fromJson($scope.selection[i]);
+						console.log("Selection" + selection);
 						if(queryService.queryObject.FilteredColumnRequest[i]){
 							queryService.queryObject.FilteredColumnRequest[i].column = selection;
 						} else {
@@ -111,7 +114,7 @@ angular.module("aws.panelControllers", [])
 						var columnSelected = selection;
 						var allColumns = queryService.dataObject.columns;
 						var column;
-						for (var j = 0; j < allColumns.length; j++) {
+						for (var j = 0; j < allColumns.length; j++) {//loop to pick up the matadata of the particular column
 							if(columnSelected != undefined && columnSelected != "") {
 								if (columnSelected.id == allColumns[j].id) {
 									column = allColumns[j];
@@ -121,6 +124,7 @@ angular.module("aws.panelControllers", [])
 						if(column != undefined) {
 							if(column.publicMetadata.hasOwnProperty("aws_metadata")) {
 								var metadata = angular.fromJson(column.publicMetadata.aws_metadata);
+								//decides the kind of format for filtering, sliders for continuous variables and Drop downs for categorical variables
 								if (metadata.hasOwnProperty("varType")) {
 									if (metadata.varType == "continuous") {
 										$scope.filterType[i] = "continuous";
@@ -133,7 +137,9 @@ angular.module("aws.panelControllers", [])
 										$scope.filterType[i] = "categorical";
 										if(metadata.hasOwnProperty("varValues")) {
 											console.log(metadata.varValues);
+											//gets the data and the public metadata for a particular attribute column
 											$scope.categoricalOptions[i] = queryService.getDataMapping(metadata.varValues);
+											console.log("cat" + $scope.categoricalOptions[i]);
 										}
 									}
 								}

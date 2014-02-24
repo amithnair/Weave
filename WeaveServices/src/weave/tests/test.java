@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+
 import weave.beans.RResult;
 import weave.servlets.AWSRService;
 import weave.servlets.RService;
@@ -73,14 +75,15 @@ public class test
 		for(int i = 0; i < 4; i++)
 	    {
 			
-				RResult[] scriptResult = null;
+				JSONObject[] scriptResult = null;
 				
 				Object [] allResults = new Object[3];
 				
 				System.out.println(System.getProperty("user.dir"));
 			try {
 				
-				scriptResult = aws.runScriptwithScriptMetadata(connectionObjectCopy, requestObjectCopy);
+				//scriptResult = aws.runScriptwithScriptMetadata(connectionObjectCopy, requestObjectCopy);
+				scriptResult = aws.getQueryObjectsInProject("CDC");
 				//scriptResult = aws.runScript(null, requestObjectInputNames, requestObjectInputValues, null, "","", false,false,false);
 				} catch (RemoteException e) {
 					e.printStackTrace();

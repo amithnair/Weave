@@ -83,30 +83,6 @@ aws.RClient.getScriptMetadata = function(scriptName, callback) {
 	aws.queryService(rServiceURL, 'getScriptMetadata', [scriptName], callback);
 };
 
-
-/*-----------------CALLBACKS------------------------------------------------------------------*/
-//stores the connection to be used in later R servlet calls
-aws.RClient.prototype.storeConnection= function(result, queryId){
-	this.connectionObject = result;
-};
-
-//writes results to the database if they do not exist in the database
-aws.RClient.prototype.writeResultsToDatabase = function(requestObject,displayWritingStatus){
-	aws.queryService(rServiceURL, 'writeResultsToDatabase',requestObject, displayWritingStatus);
-};
-
-aws.RClient.prototype.displayWritingStatus = function(result, queryId){
-	
-};
-
-
-aws.RClient.prototype.retriveResultsFromDatabase = function(requestObject){
-	//identify the id of requestObject
-	//check for the existence of a connection
-	//construct a query and pull out the results using point # 1
-	//display in viz
-};
-
 /**
  *  This function mirrors the runScriptWithFilteredColumns function on the RService. It runs a script using R and getting the filtered columns using Java..
  * 

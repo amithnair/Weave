@@ -23,6 +23,20 @@ aws.DataClient.getEntityChildIds = function(id, handleResult) {
 	aws.queryService(dataServiceURL, "getEntityChildIds", [id], handleResult);
 };
 
+
+/**
+ * This function calls the getListOfProjects function on the servlet
+ * it will get the list of files in the directory
+ * @param {Function} callback callback function
+ */
+aws.DataClient.getListOfProjects = function(callback) {
+	aws.queryService(rServiceURL, 'getListOfProjects', null, callback);
+};
+
+aws.DataClient.getListOfQueryObjects = function(projectName, callback){
+	aws.queryService(rServiceURL, 'getQueryObjectsInProject', [projectName], callback);
+};
+
 /**
  * This function mirrors the getEntitiesById on the servlet.
  * 

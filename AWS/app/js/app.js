@@ -29,7 +29,8 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.viewControllers',
                                  'aws.panelControllers',
                                  'aws.QueryImportExport',
-                                 'aws.RunQuery']);
+                                 'aws.RunQuery',
+                                 'aws.projectManagementCtrl']);
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
