@@ -37,8 +37,6 @@ import java.util.Vector;
 import javax.script.ScriptException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RFactor;
@@ -46,12 +44,12 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.RResult;
-import weave.config.DataConfig.DataEntityMetadata;
 import weave.servlets.DataService.FilteredColumnRequest;
-import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
@@ -340,14 +338,14 @@ public class AWSRService extends RService
 	}
 	
 	//Gets the list of queryObjects in a folder and returns an array of JSONObjects(each JSONObject --> one queryObject)
-	public JSONObject[] getQueryObjectsInProject(String projectName) throws Exception
+	public JsonObject[] getQueryObjectsInProject(String projectName) throws Exception
 	{
-		ArrayList<JSONObject> jsonlist = new ArrayList<JSONObject>();
-		JSONParser parser = new JSONParser();
+		ArrayList<JsonObject> jsonlist = new ArrayList<JsonObject>();
+		JsonParser parser = new JsonParser();
 		File queries = new File("C:/Projects", projectName);
 		String[] queryNames = queries.list();
 		
-		JSONObject[] finalQueryObjectCollection = new JSONObject[queryNames.length];
+		JsonObject[] finalQueryObjectCollection = new JsonObject[queryNames.length];
 		for(int i =0; i < queryNames.length; i++){
 			//for every queryObject, convert to a json object
 			String extension = FilenameUtils.getExtension(queryNames[i]);
@@ -355,7 +353,7 @@ public class AWSRService extends RService
 			if(extension.equalsIgnoreCase("json")){
 				String path = "C:/Projects/"+projectName+"/"+queryNames[i];//find better way to do this
 				Object currentQueryObject = parser.parse(new FileReader(path));
-				JSONObject currentjsonObject = (JSONObject) currentQueryObject;
+				JsonObject currentjsonObject = (JsonObject) currentQueryObject;
 				jsonlist.add(currentjsonObject);
 			}
 		}
@@ -956,39 +954,4 @@ public class AWSRService extends RService
 		  }
 		  return array_new;
 	}
-	
-    @SuppressWarnings("rawtypes")
-    @Override
-    protected Object cast(Object value, Class<?> type)
-    {
-    	if (type == FilteredColumnRequest.class && value != null && value instanceof Map)
-    	{
-    		FilteredColumnRequest fcr = new FilteredColumnRequest();
-    		fcr.id = (Integer)cast(MapUtils.getValue((Map)value, "id", -1), int.class);
-    		fcr.filters = (Object[])cast(MapUtils.getValue((Map)value, "filters", null), Object[].class);
-    		if (fcr.filters != null)
-    			for (int i = 0; i < fcr.filters.length; i++)
-    			{
-    				Object item = fcr.filters[i];
-    				if (item != null && item.getClass() == ArrayList.class)
-    					fcr.filters[i] = cast(item, Object[].class);
-    			}
-    		return fcr;
-    	}
-    	if (type == FilteredColumnRequest[].class && value != null && value.getClass() == Object[].class)
-    	{
-    		Object[] input = (Object[]) value;
-    		FilteredColumnRequest[] output = new FilteredColumnRequest[input.length];
-    		for (int i = 0; i < input.length; i++)
-    		{
-    			output[i] = (FilteredColumnRequest)cast(input[i], FilteredColumnRequest.class);
-    		}
-    		value = output;
-    	}
-    	if (type == DataEntityMetadata.class && value != null && value instanceof Map)
-    	{
-    		return DataEntityMetadata.fromMap((Map)value);
-    	}
-    	return super.cast(value, type);
-    }
 }

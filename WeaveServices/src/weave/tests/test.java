@@ -25,11 +25,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.simple.JSONObject;
-
 import weave.beans.RResult;
 import weave.servlets.AWSRService;
 import weave.servlets.RService;
+
+import com.google.gson.JsonObject;
 
 public class test
 {
@@ -75,7 +75,7 @@ public class test
 		for(int i = 0; i < 4; i++)
 	    {
 			
-				JSONObject[] scriptResult = null;
+				JsonObject[] scriptResult = null;
 				
 				Object [] allResults = new Object[3];
 				
