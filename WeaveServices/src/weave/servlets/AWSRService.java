@@ -20,9 +20,7 @@
 package weave.servlets;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,7 +37,6 @@ import java.util.Vector;
 import javax.script.ScriptException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.rosuda.REngine.REXP;
@@ -55,7 +52,6 @@ import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 import com.google.gson.Gson;
-
 import com.google.gson.internal.StringMap;
 
 public class AWSRService extends RService
