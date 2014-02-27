@@ -29,7 +29,8 @@ var app = angular.module('aws', ['aws.Main',
                                  'aws.panelControllers',
                                  'aws.QueryImportExport',
                                  'aws.RunQuery',
-                                 'aws.projectManagementCtrl']);
+                                 'aws.projectManagementCtrl',
+                                 'ui.sortable']);
 
 app.run(['$rootScope', function($rootScope){
 	$rootScope.$safeApply = function(fn, $scope) {
