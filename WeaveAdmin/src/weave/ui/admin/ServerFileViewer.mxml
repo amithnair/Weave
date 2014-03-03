@@ -47,9 +47,9 @@
 					 width="100%" height="100%">
 			
 			<mx:columns>
-				<mx:DataGridColumn dataField="name" headerText="Name" sortable="true" />
+				<mx:DataGridColumn dataField="fileName" headerText="Name" sortable="true" />
 				<mx:DataGridColumn dataField="lastModified" labelFunction="lastModifiedLabel" headerText="Last Modified" sortable="true" />
-				<mx:DataGridColumn dataField="size" labelFunction="sizeLabel" headerText="Size" sortable="true" />
+				<mx:DataGridColumn dataField="fileSize" labelFunction="sizeLabel" headerText="Size" sortable="true" />
 			</mx:columns>
 		</mx:DataGrid>
 		
@@ -71,6 +71,7 @@
 			import weave.compiler.StandardLib;
 			import weave.services.Admin;
 			import weave.services.addAsyncResponder;
+			import weave.services.beans.WeaveFileInfo;
 			import weave.utils.FileUtils;
 			
 			public static const INPUT_CSV:String = "INPUT_CSV";
@@ -88,23 +89,24 @@
 			
 			private function search():void
 			{
-				var source:Array = new Array();
+				var source:Array = [];
 				
-				if( inputType == INPUT_CSV )
+				if (inputType == INPUT_CSV)
 					source = Admin.instance.uploadedCSVFiles;
-				else if( inputType == INPUT_SHP )
+				else if (inputType == INPUT_SHP)
 					source = Admin.instance.uploadedShapeFiles;
 				
-				if(searchTerm.text.length > 0)
+				if (searchTerm.text.length > 0)
 				{
 					var result:Array = [];
-					for ( var i:int = 0 ; i < source.length ; i++ ) {
-						if ((source[i].name as String).toLowerCase().search(searchTerm.text.toLowerCase()) >= 0)
-							result.push( source[i] );
-					}
+					for each (var info:WeaveFileInfo in source)
+						if (info.fileName.toLowerCase().search(searchTerm.text.toLowerCase()) >= 0)
+							result.push( info );
 					datagrid.dataProvider = result;
 					fileCount = result.length;
-				} else{
+				}
+				else
+				{
 					datagrid.dataProvider = source;
 					fileCount = source.length;
 				}
@@ -144,7 +146,7 @@
 			
 			private function itemClickHandler(event:ListEvent):void
 			{
-				if( datagrid.selectedItems.length > 0 )
+				if (datagrid.selectedItems.length > 0)
 					selectButton.enabled = true;
 				else
 					selectButton.enabled = false;
@@ -169,13 +171,13 @@
 				}
 			}
 			
-			private function sizeLabel(item:Object, column:DataGridColumn):String
+			private function sizeLabel(info:WeaveFileInfo, column:DataGridColumn):String
 			{
-				return FileUtils.parse(item.size as Number, 2);
+				return FileUtils.parse(info.fileSize as Number, 2);
 			}
-			private function lastModifiedLabel(item:Object, column:DataGridColumn):String
+			private function lastModifiedLabel(info:WeaveFileInfo, column:DataGridColumn):String
 			{
-				return StandardLib.formatDate(item.lastModified, "MM/DD/YYYY L:NN A", false);
+				return StandardLib.formatDate(info.lastModified, "MM/DD/YYYY L:NN A", false);
 			}
 		]]>
 	</mx:Script>
