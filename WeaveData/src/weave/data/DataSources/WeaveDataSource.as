@@ -143,10 +143,7 @@ package weave.data.DataSources
 				
 				hcr.dataSourceName.value = WeaveAPI.globalHashMap.getName(this);
 				
-				var xml:XML = <attribute/>;
-				var meta:Object = entityNode.getEntity().publicMetadata;
-				for (var key:String in meta)
-					xml['@' + key] = meta[key];
+				var xml:XML = HierarchyUtils.nodeFromMetadata(entityNode.getEntity().publicMetadata);
 				xml['@' + ENTITY_ID] = entityNode.id;
 				hcr.hierarchyPath.value = xml;
 				
@@ -418,108 +415,87 @@ package weave.data.DataSources
 		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
 		 * @param A ProxyColumn object that will be updated when the column data is ready.
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
-
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value || <empty/>;
-			
-			//trace("requestColumnFromSource()",pathInHierarchy.toXMLString());
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
-			proxyColumn.setMetadata(leafNode.copy());
-			
 			// get metadata properties from XML attributes
 			const SQLPARAMS:String = 'sqlParams';
-			var params:Object = getAttrs(leafNode, [ENTITY_ID, ColumnMetadata.MIN, ColumnMetadata.MAX, SQLPARAMS], false);
-			var columnRequestToken:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
+			var params:Object = getMetadata(proxyColumn, [ENTITY_ID, ColumnMetadata.MIN, ColumnMetadata.MAX, SQLPARAMS], false);
 			var query:AsyncToken;
 			var _idFields:Array = idFields.getSessionState() as Array;
 			
 			if (_idFields || params[ENTITY_ID])
 			{
-				var id:Object = _idFields ? getAttrs(leafNode, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
+				var id:Object = _idFields ? getMetadata(proxyColumn, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
 				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
-				getAttrs(leafNode, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
+				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
 				// dataType is only used for backwards compatibility with geometry collections
 				if (params[ColumnMetadata.DATA_TYPE] != DataTypes.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
 				
 				query = _service.getColumnFromMetadata(params);
 			}
-			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, columnRequestToken);
+			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, proxyColumn);
 			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
 		}
 		
 		/**
-		 * @param node An XML node
-		 * @param attrNames A list of attribute names
-		 * @param forUniqueId Set this to true when these attributes are the ones specified by idFields to uniquely identify a column.
+		 * @param column An attribute column.
+		 * @param propertyNames A list of metadata property names.
+		 * @param forUniqueId If true, missing property values will be set to empty strings.
+		 *                    If false, missing property values will be omitted.
 		 * @param output An object to store the values.
-		 * @return An object containing the attribute values.  Empty strings will be omitted, unless all values were empty and forUniqueId == true.
+		 * @return An object containing the metadata values.
 		 */
-		private function getAttrs(node:XML, attrNames:Array, forUniqueId:Boolean, output:Object = null):Object
+		private function getMetadata(column:IAttributeColumn, propertyNames:Array, forUniqueId:Boolean, output:Object = null):Object
 		{
-			var attrName:String;
+			if (!output)
+				output = {};
 			var found:Boolean = false;
-			var result:Object = output || {};
-			for each (attrName in attrNames)
+			var name:String;
+			for each (name in propertyNames)
 			{
-				// ignore missing values
-				var attr:String = node.attribute(attrName);
-				if (attr)
+				var value:String = column.getMetadata(name);
+				if (value)
 				{
 					found = true;
-					result[attrName] = attr;
+					output[name] = value;
 				}
 			}
 			if (!found && forUniqueId)
-				for each (attrName in attrNames)
-					result[attrName] = '';
-			return result;
+				for each (name in propertyNames)
+					output[name] = '';
+			return output;
 		}
 		
-		private function handleGetAttributeColumnFault(event:FaultEvent, request:ColumnRequestToken):void
+		private function handleGetAttributeColumnFault(event:FaultEvent, column:ProxyColumn):void
 		{
-			if (request.proxyColumn.wasDisposed)
+			if (column.wasDisposed)
 				return;
 			
-			var xml:XML = HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy) || request.pathInHierarchy;
-			var msg:String = "Error retrieving column: " + xml.toXMLString() + ' (' + event.fault.faultString + ')';
-			reportError(event.fault, msg, request);
+			var msg:String = "Error retrieving column: " + ObjectUtil.toString(column.getProxyMetadata()) + ' (' + event.fault.faultString + ')';
+			reportError(event.fault, msg, column);
 			
-			request.proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
+			column.setInternalColumn(ProxyColumn.undefinedColumn);
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
-		private function handleGetAttributeColumn(event:ResultEvent, request:ColumnRequestToken):void
+		private function handleGetAttributeColumn(event:ResultEvent, proxyColumn:ProxyColumn):void
 		{
-			if (request.proxyColumn.wasDisposed)
+			if (proxyColumn.wasDisposed)
 				return;
-			
-			var pathInHierarchy:XML = request.pathInHierarchy;
-			var proxyColumn:ProxyColumn = request.proxyColumn;
-			var hierarchyNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			// if the node does not exist in hierarchy anymore, create a new XML separate from the hierarchy.
-			if (!hierarchyNode)
-				hierarchyNode = <attribute/>;
-			else
-				proxyColumn.setMetadata(hierarchyNode);
+			var metadata:Object = proxyColumn.getProxyMetadata();
 
 			try
 			{
 				if (!event.result)
 				{
-					var msg:String = "Did not receive any data from service for attribute column: "
-						+ HierarchyUtils.getLeafNodeFromPath(request.pathInHierarchy).toXMLString();
-					reportError(msg);
+					reportError("Did not receive any data from service for attribute column: " + ObjectUtil.toString(metadata));
 					return;
 				}
 				
@@ -531,9 +507,10 @@ package weave.data.DataSources
 				{
 					var metadataValue:String = result.metadata[metadataName];
 					if (metadataValue)
-						hierarchyNode['@' + metadataName] = metadataValue;
+						metadata[metadataName] = metadataValue;
 				}
-				hierarchyNode['@'+ENTITY_ID] = result.id;
+				metadata[ENTITY_ID] = result.id;
+				proxyColumn.setMetadata(metadata);
 				
 				// special case for geometry column
 				var dataType:String = ColumnUtils.getDataType(proxyColumn);
@@ -541,7 +518,7 @@ package weave.data.DataSources
 				if (isGeom && result.data == null)
 				{
 					var tileService:IWeaveGeometryTileService = _service.createTileService(result.id);
-					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, hierarchyNode));
+					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, metadata));
 					return;
 				}
 	
@@ -561,7 +538,7 @@ package weave.data.DataSources
 						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
 						var createGeomColumn:Function = function():void
 						{
-							var newGeometricColumn:GeometryColumn = new GeometryColumn(hierarchyNode);
+							var newGeometricColumn:GeometryColumn = new GeometryColumn(metadata);
 							newGeometricColumn.setGeometries(keysVector, geometriesVector);
 							proxyColumn.setInternalColumn(newGeometricColumn);
 						};
@@ -571,8 +548,8 @@ package weave.data.DataSources
 					else if (result.thirdColumn != null)
 					{
 						// hack for dimension slider
-						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
-						newColumn.baseTitle = String(hierarchyNode.@baseTitle);
+						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(metadata);
+						newColumn.baseTitle = metadata['baseTitle'];
 						var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
 						newColumn.updateRecords(keysVector, secKeyVector, result.data);
 						proxyColumn.setInternalColumn(newColumn);
@@ -580,19 +557,19 @@ package weave.data.DataSources
 					}
 					else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 					{
-						var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
+						var newNumericColumn:NumberColumn = new NumberColumn(metadata);
 						newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
 						proxyColumn.setInternalColumn(newNumericColumn);
 					}
 					else if (ObjectUtil.stringCompare(dataType, DataTypes.DATE, true) == 0)
 					{
-						var newDateColumn:DateColumn = new DateColumn(hierarchyNode);
+						var newDateColumn:DateColumn = new DateColumn(metadata);
 						newDateColumn.setRecords(keysVector, Vector.<String>(result.data));
 						proxyColumn.setInternalColumn(newDateColumn);
 					}
 					else
 					{
-						var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
+						var newStringColumn:StringColumn = new StringColumn(metadata);
 						newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
 						proxyColumn.setInternalColumn(newStringColumn);
 					} 
@@ -605,7 +582,8 @@ package weave.data.DataSources
 			}
 			catch (e:Error)
 			{
-				trace(this,"handleGetAttributeColumn",pathInHierarchy.toXMLString(),e.getStackTrace());
+				reportError(e);
+				trace(this,"handleGetAttributeColumn",ObjectUtil.toString(metadata),e.getStackTrace());
 			}
 		}
 	}
@@ -630,20 +608,6 @@ import weave.primitives.GeometryType;
 import weave.services.EntityCache;
 import weave.services.addAsyncResponder;
 import weave.utils.BLGTreeUtils;
-
-/**
- * This object is used as a token in an AsyncResponder.
- */
-internal class ColumnRequestToken
-{
-	public function ColumnRequestToken(pathInHierarchy:XML, proxyColumn:ProxyColumn)
-	{
-		this.pathInHierarchy = pathInHierarchy;
-		this.proxyColumn = proxyColumn;
-	}
-	public var pathInHierarchy:XML;
-	public var proxyColumn:ProxyColumn;
-}
 
 /**
  * Static functions for retrieving values from PGGeom objects coming from servlet.

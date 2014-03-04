@@ -43,16 +43,11 @@ package weave.data.ColumnReferences
 		public const metadata:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
 		
 		/**
-		 * This function gets metadata associated with the column.
-		 * For standard metadata property names, refer to the ColumnMetadata class.
-		 * @param propertyName The name of the metadata property to retrieve.
-		 * @result The value of the specified metadata property.
+		 * @inheritDoc
 		 */
-		override public function getMetadata(propertyName:String):String
+		override public function getMetadata():Object
 		{
-			if (metadata.value)
-				return metadata.value[propertyName] as String;
-			return null;
+			return metadata.value;
 		}
 	}
 }

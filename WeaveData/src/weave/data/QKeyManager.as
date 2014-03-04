@@ -213,8 +213,8 @@ package weave.data
 		public function registerKeyMapping(columnReference:IColumnReference):void
 		{
 			// get the keyType(domain) and dataType(range) from the reference and store a lookup from those types to the IColumnReference.
-			var keyType:String = columnReference.getMetadata(ColumnMetadata.KEY_TYPE);
-			var dataType:String = columnReference.getMetadata(ColumnMetadata.DATA_TYPE);
+			var keyType:String = columnReference.getMetadata()[ColumnMetadata.KEY_TYPE];
+			var dataType:String = columnReference.getMetadata()[ColumnMetadata.DATA_TYPE];
 			// make sure the referenced column is actually a key mapping
 			if (!keyType || !dataType ||
 				dataType == DataTypes.STRING ||
@@ -268,7 +268,7 @@ package weave.data
 			var refList:Array = getCompatibleColumnReferences(sourceKeyType);
 			// remove incompatible refs from the list
 			for (var i:int = refList.length; i--;)
-				if ((refList[i] as IColumnReference).getMetadata(ColumnMetadata.DATA_TYPE) != destinationKeyType)
+				if ((refList[i] as IColumnReference).getMetadata()[ColumnMetadata.DATA_TYPE] != destinationKeyType)
 					refList.splice(i, 1);
 			return refList;
 		}
@@ -299,8 +299,8 @@ package weave.data
 			var ref:IColumnReference;
 			for each (ref in refList)
 			{
-				typesLookup[ref.getMetadata(ColumnMetadata.KEY_TYPE)] = true;
-				typesLookup[ref.getMetadata(ColumnMetadata.DATA_TYPE)] = true;
+				typesLookup[ref.getMetadata()[ColumnMetadata.KEY_TYPE]] = true;
+				typesLookup[ref.getMetadata()[ColumnMetadata.DATA_TYPE]] = true;
 			}
 			var typesList:Array = [];
 			for (var type:String in typesLookup)

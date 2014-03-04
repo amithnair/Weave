@@ -30,10 +30,7 @@ package weave.data.DataSources
 	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.AttributeColumns.ProxyColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.hierarchy.DataSourceTreeNode;
-	import weave.utils.HierarchyUtils;
 
 	/**
 	 * This is a class to keep an updated list of all the available data sources
@@ -101,17 +98,8 @@ package weave.data.DataSources
 			if (columnReference.getDataSource() == null)
 			{
 				// special case -- global column hack
-				var hcr:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-				try
-				{
-					var name:String = HierarchyUtils.getLeafNodeFromPath(hcr.hierarchyPath.value).@name;
-					return _root.getObject(name) as IAttributeColumn;
-				}
-				catch (e:Error)
-				{
-					// do nothing
-				}
-				return ProxyColumn.undefinedColumn;
+				var name:String = columnReference.getMetadata()['name']
+				return _root.getObject(name) as IAttributeColumn;
 			}
 			
 			return WeaveAPI.AttributeColumnCache.getColumn(columnReference);

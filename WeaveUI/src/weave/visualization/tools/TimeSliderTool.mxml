@@ -34,12 +34,15 @@
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnReference;
 			import weave.api.ui.IVisTool;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.IDataSource_old;
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.utils.HierarchyUtils;
+			import weave.utils.VectorUtils;
 			
 			WeaveAPI.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
 			
@@ -92,40 +95,50 @@
 						continue;
 					if (!linkGlobalColumns.value && object is IAttributeColumn)
 						continue;
-					for each (obj in WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference))
+					for each (obj in WeaveAPI.SessionManager.getLinkableDescendants(object, IColumnReference))
 						dd[obj] = true;
 				}
-				var descendants:Array = [];
-				for (obj in dd)
-					descendants.push(obj);
-				
+				var descendants:Array = VectorUtils.getKeys(dd);
 				var len:int = descendants.length;
 				for (var i:int = 0; i < len; i++)
 				{
-					var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
-					var path:XML = XML(ref.hierarchyPath.value).copy(); // make a copy so we don't modify the original
-					var search:XML = path..attribute[0] || path;
-					if (String(search.@year) && String(search.@year) != filterValue)
+					var ref:IColumnReference = descendants[i] as IColumnReference;
+					
+					//TODO - alternative to XML hierarchy
+					var hcr:HierarchyColumnReference = ref as HierarchyColumnReference;
+					if (!hcr)
+						continue;
+					
+					var metadata:Object = ref.getMetadata();
+					if (metadata['year'] && metadata['year'] != filterValue)
 					{
-						delete search['@'+WeaveDataSource.ENTITY_ID];
-						delete search.@title;
-						search.@year = filterValue;
-						if (search.@csvColumn)
+						delete metadata[WeaveDataSource.ENTITY_ID];
+						delete metadata[ColumnMetadata.TITLE];
+						metadata['year'] = filterValue;
+						if (metadata['csvColumn'])
 						{
 							// this hack adds support for CSVDataSource
 							try
 							{
-								delete search.@csvColumn;
-								if (String(search.@name))
-									delete search.@title;
+								delete metadata['csvColumn'];
+								if (metadata['name'])
+									delete metadata[ColumnMetadata.TITLE];
 								var dataSource:IDataSource_old = ref.getDataSource() as IDataSource_old;
+								
+								//TODO - alternative to XML hierarchy
 								var list:XMLList = dataSource.attributeHierarchy.value.descendants('attribute');
-								path = HierarchyUtils.getFirstNodeContainingAttributes(list, search, true, false) || path;
+								var path:XML = HierarchyUtils.getFirstNodeContainingAttributes(list, HierarchyUtils.nodeFromMetadata(metadata), true, false);
+								if (path)
+								{
+									hcr.hierarchyPath.value = path;
+									continue;
+								}
 							}
 							catch (e:Error) { }
 						}
 					}
-					ref.hierarchyPath.value = path;
+					//TODO - alternative to XML hierarchy
+					hcr.hierarchyPath.value = HierarchyUtils.nodeFromMetadata(metadata);
 				}
 			}
 			

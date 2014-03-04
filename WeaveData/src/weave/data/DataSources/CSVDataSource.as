@@ -35,7 +35,6 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
@@ -63,7 +62,6 @@ package weave.data.DataSources
 	import weave.data.QKeyManager;
 	import weave.services.AMF3Servlet;
 	import weave.services.addAsyncResponder;
-	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -225,22 +223,22 @@ package weave.data.DataSources
 		{
 			if (!parsedRows)
 				return null;
-			var attr:XML = <attribute/>;
-			attr['@'+ColumnMetadata.TITLE] = getColumnTitle(id);
-			attr['@'+ColumnMetadata.KEY_TYPE] = keyType.value || DataTypes.STRING;
+			var metadata:Object = {};
+			metadata[ColumnMetadata.TITLE] = getColumnTitle(id);
+			metadata[ColumnMetadata.KEY_TYPE] = keyType.value || DataTypes.STRING;
 			
 			// get column metadata from session state
 			var meta:Object = getColumnMetadata(id);
 			for (var key:String in meta)
-				attr['@'+key] = meta[key];
+				metadata[key] = meta[key];
 			
 			// overwrite identifying property
 			if (typeof id == 'number')
-				attr['@'+METADATA_COLUMN_INDEX] = id;
+				metadata[METADATA_COLUMN_INDEX] = id;
 			else
-				attr['@'+METADATA_COLUMN_NAME] = id;
+				metadata[METADATA_COLUMN_NAME] = id;
 			
-			return attr;
+			return HierarchyUtils.nodeFromMetadata(metadata);
 		}
 		
 		/**
@@ -259,7 +257,7 @@ package weave.data.DataSources
 			return WeaveAPI.AttributeColumnCache.getColumn(_reusableReference);
 		}
 		
-		// used by getColumnByName
+		// used by getColumnById
 		private const _reusableReference:HierarchyColumnReference = newDisposableChild(this, HierarchyColumnReference);
 		
 		/**
@@ -324,10 +322,7 @@ package weave.data.DataSources
 		}
 		
 		
-		/**
-		 * The keys in this Dictionary are ProxyColumns that have been filled in with data via requestColumnFromSource().
-		 */
-		private const _columnToReferenceMap:Dictionary = new Dictionary();
+		private const _proxyColumnSet:Dictionary = new Dictionary();
 		
 		override protected function get initializationComplete():Boolean
 		{
@@ -399,8 +394,8 @@ package weave.data.DataSources
 			handleURLChange();
 			
 			// recalculate all columns previously requested because CSV data may have changed.
-			for (var proxyColumn:* in _columnToReferenceMap)
-				requestColumnFromSource(_columnToReferenceMap[proxyColumn] as IColumnReference, proxyColumn);
+			for (var proxyColumn:* in _proxyColumnSet)
+				requestColumnFromSource(proxyColumn);
 
 			super.initialize();
 		}
@@ -511,30 +506,26 @@ package weave.data.DataSources
 		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
 		 * @param A ProxyColumn object that will be updated when the column data is ready.
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
+			var metadata:Object = proxyColumn.getProxyMetadata();
 
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value || <empty/>;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy) || <empty/>;
-			proxyColumn.setMetadata(leafNode.copy());
-
-			var columnId:Object = proxyColumn.getMetadata(METADATA_COLUMN_INDEX);
+			// get column id from metadata
+			var columnId:Object = metadata[METADATA_COLUMN_INDEX];
 			if (columnId)
 			{
 				columnId = int(columnId);
 			}
 			else
 			{
-				columnId = proxyColumn.getMetadata(METADATA_COLUMN_NAME);
+				columnId = metadata[METADATA_COLUMN_NAME];
 				
 				// backwards compatibility
 				if (!columnId)
-					columnId = proxyColumn.getMetadata("name");
+					columnId = metadata["name"];
 			}
 			
+			// get column name and index from id
 			var colNames:Array = parsedRows[0] || [];
 			var colIndex:int, colName:String;
 			if (typeof columnId == 'number')
@@ -547,9 +538,9 @@ package weave.data.DataSources
 				colIndex = colNames.indexOf(columnId);
 				colName = String(columnId);
 			}
+			if (!metadata[ColumnMetadata.TITLE])
+				metadata[ColumnMetadata.TITLE] = colName;
 			
-			if (!proxyColumn.getMetadata(ColumnMetadata.TITLE))
-				leafNode['@' + ColumnMetadata.TITLE] = colName;
 			// it is ok if keyColIndex is -1 because getColumnValues supports -1
 			var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
 
@@ -559,7 +550,7 @@ package weave.data.DataSources
 			
 			// loop through values, determine column type
 			var nullValue:String;
-			var dataType:String = ColumnUtils.getDataType(proxyColumn);
+			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			var isNumericColumn:Boolean = dataType == null || dataType == DataTypes.NUMBER;
 			if (isNumericColumn)
 			{
@@ -597,7 +588,7 @@ package weave.data.DataSources
 					for (i = 0; i < csvDataColumn.length; i++)
 						numericVector[i] = getNumberFromString(csvDataColumn[i]);
 	
-					newColumn = new NumberColumn(leafNode);
+					newColumn = new NumberColumn(metadata);
 					(newColumn as NumberColumn).setRecords(keysVector, numericVector);
 				}
 				else
@@ -606,20 +597,22 @@ package weave.data.DataSources
 	
 					if (dataType == DataTypes.DATE)
 					{
-						newColumn = new DateColumn(leafNode);
+						newColumn = new DateColumn(metadata);
 						(newColumn as DateColumn).setRecords(keysVector, stringVector);
 					}
 					else
 					{
-						newColumn = new StringColumn(leafNode);
+						newColumn = new StringColumn(metadata);
 						(newColumn as StringColumn).setRecords(keysVector, stringVector);
 					}
 				}
 				proxyColumn.setInternalColumn(newColumn);
-				_columnToReferenceMap[proxyColumn] = columnReference;
+				_proxyColumnSet[proxyColumn] = true;
 				
 				debug("initialized column",proxyColumn);
 			}
+			
+			proxyColumn.setMetadata(metadata);
 			var keyStrings:Array = [];
 			getColumnValues(parsedRows, keyColIndex, keyStrings);
 			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType.value, keyStrings, proxyColumn, setRecords, keysVector);
